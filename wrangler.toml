@@ -1,0 +1,7 @@
+name = "iracing-peptalk-bot"
+main = "src/worker.ts"
+compatibility_date = "2026-08-04"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+GEMINI_MODEL = "gemini-2.5-flash-lite"

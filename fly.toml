@@ -1,8 +1,0 @@
-app = "iracing-peptalk-bot"
-primary_region = "iad"
-
-[build]
-
-[[vm]]
-  size = "shared-cpu-1x"
-  memory = "256mb"

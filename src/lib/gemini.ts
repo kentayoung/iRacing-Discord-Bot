@@ -1,8 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { env } from './env.js';
 import { MOOD_LABELS, type PepTalkInput } from '../types.js';
-
-const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 
 const SYSTEM_PROMPT = `You are the driver's best friend hyping them up before their iRacing race —
 not a coach, not a crew chief, their actual boy giving them shit like the
@@ -30,9 +27,16 @@ function buildUserPrompt(input: PepTalkInput): string {
   return `Give me a pep talk before my race.\n\n${lines.join('\n')}`;
 }
 
-export async function generatePepTalk(input: PepTalkInput): Promise<string> {
+export interface GeminiConfig {
+  apiKey: string;
+  model: string;
+}
+
+export async function generatePepTalk(input: PepTalkInput, config: GeminiConfig): Promise<string> {
+  const ai = new GoogleGenAI({ apiKey: config.apiKey });
+
   const response = await ai.models.generateContent({
-    model: env.GEMINI_MODEL,
+    model: config.model,
     contents: buildUserPrompt(input),
     config: {
       systemInstruction: SYSTEM_PROMPT,

@@ -1,62 +1,84 @@
 # iRacing Pep Talk Bot
 
-A Discord bot with one job: hype you up before your iRacing race. Run
-`/peptalk`, optionally tell it your track, series/car, mood, and any extra
-context, and Gemini generates a short pep talk.
+A Discord bot with one job: talk shit and hype you up before your iRacing
+race. Run `/peptalk`, optionally tell it your track, series/car, mood, and
+any extra context, and Gemini generates a short pep talk — your best friend
+giving you shit, then getting you fired up.
 
 This bot does **not** integrate with the iRacing API — iRacing currently has
 new OAuth client ID registration paused for third-party apps, so this is
 intentionally a standalone, stateless command for now.
 
-## Discord Developer Portal Setup
+It runs on **Cloudflare Workers** using Discord's HTTP interactions model:
+Discord POSTs each slash command directly to the Worker (no persistent
+gateway connection needed), which verifies the request, kicks off the Gemini
+call, and edits its reply in once the pep talk is ready. Cloudflare's Workers
+Free plan covers this comfortably at zero cost.
+
+## 1. Discord Developer Portal Setup
 
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications) and create a **New Application**.
-2. Open the **Bot** tab, click **Reset Token**, and copy it — this is `DISCORD_TOKEN`.
-3. Leave all privileged intents off (Message Content, Presence, Server Members). This bot only needs the default `Guilds` intent.
-4. Open **OAuth2 → General** and copy the **Application (Client) ID** — this is `DISCORD_CLIENT_ID`.
-5. Open **OAuth2 → URL Generator**, check the `bot` and `applications.commands` scopes (no bot permissions are required), and open the generated URL to invite the bot to your dev server.
-6. In Discord, enable Developer Mode (User Settings → Advanced), then right-click your dev server and **Copy Server ID** — this is `DISCORD_GUILD_ID` (used only for fast dev command registration).
+2. **General Information** tab → copy the **Application ID** → this is `DISCORD_CLIENT_ID` — and copy the **Public Key** → this is `DISCORD_PUBLIC_KEY`.
+3. **Bot** tab → Reset Token → copy it → this is `DISCORD_TOKEN` (only needed for registering commands, not by the Worker at runtime). Leave all privileged intents off.
+4. **OAuth2 → URL Generator** → check the `bot` and `applications.commands` scopes (no bot permissions are required) → open the generated URL to invite the bot to your server.
+5. In Discord, enable Developer Mode (User Settings → Advanced), then right-click your server and **Copy Server ID** → this is `DISCORD_GUILD_ID` (used only for fast dev command registration).
+6. Leave **Interactions Endpoint URL** blank for now — you'll set it after the first deploy (Discord verifies it's live before saving it).
 
-## Local Development
+## 2. Local Development
+
+Two separate env files, because two different runtimes are involved:
+
+- **`.env`** — used only by the Node-based `deploy-commands` script (`DISCORD_TOKEN`, `DISCORD_CLIENT_ID`, `DISCORD_GUILD_ID`).
+- **`.dev.vars`** — used by `wrangler dev` to emulate the Worker's secrets locally (`DISCORD_PUBLIC_KEY`, `GEMINI_API_KEY`).
 
 ```bash
 npm install
-cp .env.example .env   # fill in DISCORD_TOKEN, DISCORD_CLIENT_ID, DISCORD_GUILD_ID, GEMINI_API_KEY
-npm run deploy-commands # registers /peptalk to your dev guild (near-instant)
-npm run dev             # starts the bot
+cp .env.example .env           # fill in DISCORD_TOKEN, DISCORD_CLIENT_ID, DISCORD_GUILD_ID
+cp .dev.vars.example .dev.vars # fill in DISCORD_PUBLIC_KEY, GEMINI_API_KEY
+npm run deploy-commands        # registers /peptalk to your dev guild (near-instant)
+npm run dev                    # starts a local Worker dev server (wrangler dev)
 ```
 
-Then run `/peptalk` in your dev server.
+`wrangler dev` gives you a local URL, but Discord needs a publicly reachable
+HTTPS endpoint to send interactions to — use `wrangler dev --remote` (routes
+through Cloudflare, no local tunnel needed) or deploy to a real Worker (see
+below) and test against that instead.
 
-## Environment Variables
+## 3. Environment Variables / Secrets
 
-| Var | Required | Notes |
+| Var | Used by | Notes |
 |---|---|---|
-| `DISCORD_TOKEN` | yes | bot token |
-| `DISCORD_CLIENT_ID` | yes | application ID |
-| `DISCORD_GUILD_ID` | no | dev-only; guild-scoped command registration when set, global when unset |
-| `GEMINI_API_KEY` | yes | free tier via [Google AI Studio](https://aistudio.google.com/apikey) |
-| `GEMINI_MODEL` | no | defaults to `gemini-3.5-flash` |
+| `DISCORD_TOKEN` | `deploy-commands` (Node) | bot token, only for registering commands |
+| `DISCORD_CLIENT_ID` | `deploy-commands` (Node) | application ID |
+| `DISCORD_GUILD_ID` | `deploy-commands` (Node) | optional, dev-only; guild-scoped registration when set, global when unset |
+| `DISCORD_PUBLIC_KEY` | Worker | verifies incoming interaction requests are really from Discord |
+| `GEMINI_API_KEY` | Worker | free tier via [Google AI Studio](https://aistudio.google.com/apikey) |
+| `GEMINI_MODEL` | Worker | set in `wrangler.toml` `[vars]`, defaults to `gemini-2.5-flash-lite` — a lite model was chosen deliberately for its much higher free-tier request quota than newer flagship Flash models |
 
-## Deployment (Fly.io)
+## 4. Deployment (Cloudflare Workers)
 
 ```bash
-fly launch   # first time only, review fly.toml
-fly secrets set DISCORD_TOKEN=... DISCORD_CLIENT_ID=... GEMINI_API_KEY=...
-fly deploy
-fly scale count 1
+npx wrangler login                        # one-time, opens a browser
+npx wrangler secret put DISCORD_PUBLIC_KEY
+npx wrangler secret put GEMINI_API_KEY
+npm run deploy                            # wrangler deploy
 ```
 
-Make sure autostop/autosuspend is disabled — this bot needs an always-open
-gateway connection and cannot tolerate being suspended.
+After the first deploy, copy the Worker's URL (`https://iracing-peptalk-bot.<your-subdomain>.workers.dev`)
+into the Discord app's **General Information → Interactions Endpoint URL**
+and save — Discord will immediately PING it to verify it's live.
 
-`.github/workflows/deploy.yml` deploys automatically on push to `main`. It
-needs these repo secrets: `FLY_API_TOKEN`, `DISCORD_TOKEN`, `DISCORD_CLIENT_ID`,
-`GEMINI_API_KEY`. It also re-registers global slash commands on every
-deploy (propagation can take up to ~1 hour, unlike guild-scoped dev commands).
+`.github/workflows/deploy.yml` deploys automatically on push to `main` via
+[`cloudflare/wrangler-action`](https://github.com/cloudflare/wrangler-action),
+which also syncs the `DISCORD_PUBLIC_KEY`/`GEMINI_API_KEY` Worker secrets on
+every deploy. It needs these repo secrets: `CLOUDFLARE_API_TOKEN`,
+`DISCORD_PUBLIC_KEY`, `GEMINI_API_KEY`, `DISCORD_TOKEN`, `DISCORD_CLIENT_ID`.
+It also re-registers global slash commands on every deploy (propagation can
+take up to ~1 hour, unlike guild-scoped dev commands).
 
 ## Adding Another Command
 
-Add a new file in `src/commands/` exporting a `Command` (see
-`src/commands/peptalk.ts`), then add it to the array in `src/index.ts` and
-`src/deploy-commands.ts`.
+Add a new file in `src/commands/` exporting a plain command schema object
+(see `src/commands/peptalk.ts`), add it to the `commands` array in
+`src/deploy-commands.ts`, and route to it in `src/worker.ts`'s interaction
+handler.

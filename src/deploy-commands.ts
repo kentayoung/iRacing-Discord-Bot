@@ -1,20 +1,29 @@
-import { REST, Routes } from 'discord.js';
 import { env } from './lib/env.js';
-import { peptalk } from './commands/peptalk.js';
+import { peptalkCommand } from './commands/peptalk.js';
 
-const commands = [peptalk].map((command) => command.data.toJSON());
-
-const rest = new REST().setToken(env.DISCORD_TOKEN);
+const commands = [peptalkCommand];
 
 async function main() {
   const route = env.DISCORD_GUILD_ID
-    ? Routes.applicationGuildCommands(env.DISCORD_CLIENT_ID, env.DISCORD_GUILD_ID)
-    : Routes.applicationCommands(env.DISCORD_CLIENT_ID);
+    ? `https://discord.com/api/v10/applications/${env.DISCORD_CLIENT_ID}/guilds/${env.DISCORD_GUILD_ID}/commands`
+    : `https://discord.com/api/v10/applications/${env.DISCORD_CLIENT_ID}/commands`;
 
   const scope = env.DISCORD_GUILD_ID ? `guild ${env.DISCORD_GUILD_ID}` : 'global';
   console.log(`Registering ${commands.length} command(s) to ${scope}...`);
 
-  await rest.put(route, { body: commands });
+  const response = await fetch(route, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bot ${env.DISCORD_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(commands),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Discord API returned ${response.status}: ${body}`);
+  }
 
   console.log('Done.');
 }

@@ -1,10 +1,3 @@
-import type { ChatInputCommandInteraction, SlashCommandOptionsOnlyBuilder } from 'discord.js';
-
-export interface Command {
-  data: SlashCommandOptionsOnlyBuilder;
-  execute(interaction: ChatInputCommandInteraction): Promise<void>;
-}
-
 export const MOOD_CHOICES = [
   { name: 'Nervous', value: 'nervous' },
   { name: 'Confident', value: 'confident' },
