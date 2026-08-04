@@ -44,6 +44,14 @@ HTTPS endpoint to send interactions to — use `wrangler dev --remote` (routes
 through Cloudflare, no local tunnel needed) or deploy to a real Worker (see
 below) and test against that instead.
 
+If `wrangler dev` fails to start with a `compatibility date` error, the
+installed `wrangler`'s bundled local runtime is older than the
+`compatibility_date` in `wrangler.toml`. Newer `wrangler` versions
+(≥4.9x) require Node 22+; this project intentionally stays on an older
+`wrangler`/`@cloudflare/workers-types` pair compatible with Node 20, with
+`compatibility_date` pinned to a date that version supports. Only bump
+either if you've also upgraded Node.
+
 ## 3. Environment Variables / Secrets
 
 | Var | Used by | Notes |
@@ -53,7 +61,7 @@ below) and test against that instead.
 | `DISCORD_GUILD_ID` | `deploy-commands` (Node) | optional, dev-only; guild-scoped registration when set, global when unset |
 | `DISCORD_PUBLIC_KEY` | Worker | verifies incoming interaction requests are really from Discord |
 | `GEMINI_API_KEY` | Worker | free tier via [Google AI Studio](https://aistudio.google.com/apikey) |
-| `GEMINI_MODEL` | Worker | set in `wrangler.toml` `[vars]`, defaults to `gemini-2.5-flash-lite` — a lite model was chosen deliberately for its much higher free-tier request quota than newer flagship Flash models |
+| `GEMINI_MODEL` | Worker | set in `wrangler.toml` `[vars]`, defaults to `gemini-3.1-flash-lite` — a lite model was chosen deliberately for its much higher free-tier request quota than newer flagship Flash models. Google has repeatedly retired free-tier model IDs out from under existing code (this is the third default we've had to change) — if pep talks start 404ing, check [Google AI Studio](https://aistudio.google.com/) for a current model ID |
 
 ## 4. Deployment (Cloudflare Workers)
 
@@ -64,9 +72,23 @@ npx wrangler secret put GEMINI_API_KEY
 npm run deploy                            # wrangler deploy
 ```
 
-After the first deploy, copy the Worker's URL (`https://iracing-discord-bot.<your-subdomain>.workers.dev`)
-into the Discord app's **General Information → Interactions Endpoint URL**
-and save — Discord will immediately PING it to verify it's live.
+After the first deploy, copy the Worker's URL (printed by `wrangler deploy` —
+of the form `https://<worker-name>.<your-account-subdomain>.workers.dev`,
+e.g. `https://box-box-bot.iracing-discord-bot.workers.dev`) into the Discord
+app's **General Information → Interactions Endpoint URL** and save — Discord
+will immediately PING it to verify it's live. If verification fails, check
+that the Worker's secrets are actually set (`npx wrangler secret list` should
+show `DISCORD_PUBLIC_KEY` and `GEMINI_API_KEY`) — a missing secret makes every
+request fail signature verification, which Discord reports as "could not be
+verified."
+
+Inviting the bot to another server doesn't automatically get it the
+`/box-box` command — that requires a **global** command registration (guild-
+scoped registration via `DISCORD_GUILD_ID` only reaches that one dev server).
+To register globally, temporarily unset `DISCORD_GUILD_ID` and rerun
+`npm run deploy-commands`; propagation to newly-invited servers can take up
+to ~1 hour. The GitHub Actions deploy workflow below always registers
+globally.
 
 `.github/workflows/deploy.yml` deploys automatically on push to `main` via
 [`cloudflare/wrangler-action`](https://github.com/cloudflare/wrangler-action),
