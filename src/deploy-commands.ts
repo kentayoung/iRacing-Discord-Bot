@@ -1,7 +1,7 @@
 import { env } from './lib/env.js';
-import { peptalkCommand } from './commands/peptalk.js';
+import { boxBoxCommand } from './commands/box-box.js';
 
-const commands = [peptalkCommand];
+const commands = [boxBoxCommand];
 
 async function main() {
   const route = env.DISCORD_GUILD_ID

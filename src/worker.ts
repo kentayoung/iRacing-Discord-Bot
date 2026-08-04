@@ -1,5 +1,5 @@
 import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions';
-import { peptalkCommand } from './commands/peptalk.js';
+import { boxBoxCommand } from './commands/box-box.js';
 import { generatePepTalk } from './lib/gemini.js';
 import type { Mood, PepTalkInput } from './types.js';
 
@@ -48,7 +48,7 @@ async function editOriginalResponse(applicationId: string, token: string, conten
   });
 }
 
-async function handlePeptalk(interaction: DiscordInteraction, env: Env): Promise<void> {
+async function handleBoxBox(interaction: DiscordInteraction, env: Env): Promise<void> {
   try {
     const text = await generatePepTalk(extractInput(interaction.data?.options), {
       apiKey: env.GEMINI_API_KEY,
@@ -56,7 +56,7 @@ async function handlePeptalk(interaction: DiscordInteraction, env: Env): Promise
     });
     await editOriginalResponse(interaction.application_id, interaction.token, text);
   } catch (err) {
-    console.error('peptalk generation failed:', err);
+    console.error('box-box generation failed:', err);
     await editOriginalResponse(
       interaction.application_id,
       interaction.token,
@@ -85,8 +85,8 @@ export default {
       return jsonResponse({ type: InteractionResponseType.PONG });
     }
 
-    if (interaction.type === InteractionType.APPLICATION_COMMAND && interaction.data?.name === peptalkCommand.name) {
-      ctx.waitUntil(handlePeptalk(interaction, env));
+    if (interaction.type === InteractionType.APPLICATION_COMMAND && interaction.data?.name === boxBoxCommand.name) {
+      ctx.waitUntil(handleBoxBox(interaction, env));
       return jsonResponse({ type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE });
     }
 

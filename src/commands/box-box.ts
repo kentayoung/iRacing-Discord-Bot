@@ -4,8 +4,8 @@ const ApplicationCommandOptionType = {
   STRING: 3,
 } as const;
 
-export const peptalkCommand = {
-  name: 'peptalk',
+export const boxBoxCommand = {
+  name: 'box-box',
   description: 'Get an AI-generated pep talk to hype you up before your race',
   options: [
     {

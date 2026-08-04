@@ -1,7 +1,7 @@
 # iRacing Discord Bot
 
 A Discord bot with one job: talk shit and hype you up before your iRacing
-race. Run `/peptalk`, optionally tell it your track, series/car, mood, and
+race. Run `/box-box`, optionally tell it your track, series/car, mood, and
 any extra context, and Gemini generates a short pep talk — your best friend
 giving you shit, then getting you fired up.
 
@@ -35,7 +35,7 @@ Two separate env files, because two different runtimes are involved:
 npm install
 cp .env.example .env           # fill in DISCORD_TOKEN, DISCORD_CLIENT_ID, DISCORD_GUILD_ID
 cp .dev.vars.example .dev.vars # fill in DISCORD_PUBLIC_KEY, GEMINI_API_KEY
-npm run deploy-commands        # registers /peptalk to your dev guild (near-instant)
+npm run deploy-commands        # registers /box-box to your dev guild (near-instant)
 npm run dev                    # starts a local Worker dev server (wrangler dev)
 ```
 
@@ -79,6 +79,6 @@ take up to ~1 hour, unlike guild-scoped dev commands).
 ## Adding Another Command
 
 Add a new file in `src/commands/` exporting a plain command schema object
-(see `src/commands/peptalk.ts`), add it to the `commands` array in
+(see `src/commands/box-box.ts`), add it to the `commands` array in
 `src/deploy-commands.ts`, and route to it in `src/worker.ts`'s interaction
 handler.
