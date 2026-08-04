@@ -1,9 +1,9 @@
 {
-  "name": "iracing-peptalk-bot",
+  "name": "iracing-discord-bot",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Discord bot that generates an AI pep talk before your iRacing race.",
+  "description": "iRacing Discord Bot — generates an AI pep talk before your iRacing race.",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",

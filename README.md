@@ -1,4 +1,4 @@
-# iRacing Pep Talk Bot
+# iRacing Discord Bot
 
 A Discord bot with one job: talk shit and hype you up before your iRacing
 race. Run `/peptalk`, optionally tell it your track, series/car, mood, and
@@ -64,7 +64,7 @@ npx wrangler secret put GEMINI_API_KEY
 npm run deploy                            # wrangler deploy
 ```
 
-After the first deploy, copy the Worker's URL (`https://iracing-peptalk-bot.<your-subdomain>.workers.dev`)
+After the first deploy, copy the Worker's URL (`https://iracing-discord-bot.<your-subdomain>.workers.dev`)
 into the Discord app's **General Information → Interactions Endpoint URL**
 and save — Discord will immediately PING it to verify it's live.
 

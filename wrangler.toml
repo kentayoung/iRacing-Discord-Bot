@@ -1,4 +1,4 @@
-name = "iracing-peptalk-bot"
+name = "iracing-discord-bot"
 main = "src/worker.ts"
 compatibility_date = "2026-08-04"
 compatibility_flags = ["nodejs_compat"]
