@@ -1,7 +1,8 @@
 import { env } from './lib/env.js';
 import { boxBoxCommand } from './commands/box-box.js';
+import { statsCommand } from './commands/stats.js';
 
-const commands = [boxBoxCommand];
+const commands = [boxBoxCommand, statsCommand];
 
 async function main() {
   const route = env.DISCORD_GUILD_ID

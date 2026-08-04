@@ -1,11 +1,15 @@
-const ApplicationCommandOptionType = {
-  STRING: 3,
-} as const;
+import { ApplicationCommandOptionType } from '../types.js';
 
 export const boxBoxCommand = {
   name: 'box-box',
   description: 'Get an AI-generated pep talk to hype you up before your race',
   options: [
+    {
+      type: ApplicationCommandOptionType.STRING,
+      name: 'name',
+      description: 'Your name, so the roast is personal',
+      max_length: 50,
+    },
     {
       type: ApplicationCommandOptionType.STRING,
       name: 'track',
@@ -29,6 +33,11 @@ export const boxBoxCommand = {
       name: 'context',
       description: 'Anything else? e.g. rain forecast, P1 last time, first oval race',
       max_length: 500,
+    },
+    {
+      type: ApplicationCommandOptionType.INTEGER,
+      name: 'cust_id',
+      description: 'Your iRacing customer ID, to roast your real stats (optional, unofficial data source)',
     },
   ],
 };

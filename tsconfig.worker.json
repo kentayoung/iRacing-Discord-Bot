@@ -4,5 +4,5 @@
     "lib": ["ES2022"],
     "types": ["@cloudflare/workers-types"]
   },
-  "include": ["src/worker.ts", "src/commands/**/*.ts", "src/lib/gemini.ts", "src/types.ts"]
+  "include": ["src/worker.ts", "src/commands/**/*.ts", "src/lib/gemini.ts", "src/lib/iracing-stats.ts", "src/types.ts"]
 }

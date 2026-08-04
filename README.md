@@ -1,13 +1,28 @@
 # iRacing Discord Bot
 
-A Discord bot with one job: talk shit and hype you up before your iRacing
-race. Run `/box-box`, optionally tell it your track, series/car, mood, and
-any extra context, and Gemini generates a short pep talk — your best friend
-giving you shit, then getting you fired up.
+A Discord bot with two commands:
 
-This bot does **not** integrate with the iRacing API — iRacing currently has
-new OAuth client ID registration paused for third-party apps, so this is
-intentionally a standalone, stateless command for now.
+- **`/box-box`** — talks shit and hypes you up before your iRacing race. Tell
+  it your name, track, series/car, mood, and any extra context, and Gemini
+  generates a short pep talk — your best friend giving you shit, then getting
+  you fired up. Optionally pass `cust_id` and it'll roast your real career
+  stats instead of staying generic.
+- **`/stats`** — looks up a driver's career stats (iRating, safety rating,
+  starts/wins/win%, per category) by iRacing customer ID.
+
+Both commands are stateless — nothing is stored between invocations.
+
+## A note on data sources
+
+iRacing's own Data API currently has new OAuth client ID registration paused
+for third-party apps, so this bot doesn't use it. `/stats` and `/box-box`'s
+`cust_id` option instead call an **unofficial, undocumented** third-party API
+(`iracing6-backend.herokuapp.com`, reverse-engineered from a community stats
+site's JS bundle — see `src/lib/iracing-stats.ts`). It's not an iRacing
+service, has no published terms, and could change shape, rate-limit us, or
+disappear without notice. Both commands degrade gracefully if it's down:
+`/stats` shows an error, `/box-box` just skips personalization and still
+generates a generic pep talk.
 
 It runs on **Cloudflare Workers** using Discord's HTTP interactions model:
 Discord POSTs each slash command directly to the Worker (no persistent
@@ -35,7 +50,7 @@ Two separate env files, because two different runtimes are involved:
 npm install
 cp .env.example .env           # fill in DISCORD_TOKEN, DISCORD_CLIENT_ID, DISCORD_GUILD_ID
 cp .dev.vars.example .dev.vars # fill in DISCORD_PUBLIC_KEY, GEMINI_API_KEY
-npm run deploy-commands        # registers /box-box to your dev guild (near-instant)
+npm run deploy-commands        # registers /box-box and /stats to your dev guild (near-instant)
 npm run dev                    # starts a local Worker dev server (wrangler dev)
 ```
 
@@ -83,8 +98,8 @@ request fail signature verification, which Discord reports as "could not be
 verified."
 
 Inviting the bot to another server doesn't automatically get it the
-`/box-box` command — that requires a **global** command registration (guild-
-scoped registration via `DISCORD_GUILD_ID` only reaches that one dev server).
+commands — that requires a **global** command registration (guild-scoped
+registration via `DISCORD_GUILD_ID` only reaches that one dev server).
 To register globally, temporarily unset `DISCORD_GUILD_ID` and rerun
 `npm run deploy-commands`; propagation to newly-invited servers can take up
 to ~1 hour. The GitHub Actions deploy workflow below always registers

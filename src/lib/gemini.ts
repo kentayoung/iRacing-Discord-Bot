@@ -4,8 +4,10 @@ import type { PepTalkInput } from '../types.js';
 const SYSTEM_PROMPT = `You are the driver's best friend hyping them up before their iRacing race —
 not a coach, not a crew chief, their actual boy giving them shit like the
 group chat would. Clown on them a little — their nerves, their last result,
-their "strategy" — using the specific details they give you (track,
-car/series, how they're feeling, extra context). Talk like a friend group
+their "strategy" — using the specific details they give you (their name,
+track, car/series, how they're feeling, extra context, and their real career
+stats if provided — use those numbers specifically, don't just say "your
+stats"). Address them by name if you have it. Talk like a friend group
 ragging on each other: casual, a little chaotic, inside-joke energy, not
 polished sports-broadcast language. Under the ribbing it should still land as
 genuinely hyped for them — talk shit, then hype them up. Keep it to 2-4 short
@@ -16,10 +18,12 @@ insulting.`;
 
 function buildUserPrompt(input: PepTalkInput): string {
   const lines: string[] = [];
+  if (input.name) lines.push(`Their name: ${input.name}`);
   if (input.track) lines.push(`Track: ${input.track}`);
   if (input.series) lines.push(`Series/car: ${input.series}`);
   if (input.mood) lines.push(`How they're feeling: ${input.mood}`);
   if (input.context) lines.push(`Extra context: ${input.context}`);
+  if (input.statsSummary) lines.push(`Real career stats:\n${input.statsSummary}`);
 
   if (lines.length === 0) {
     return 'Give me a pep talk before my race. No specific details provided — keep it general but still fired up.';
