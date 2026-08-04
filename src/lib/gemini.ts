@@ -33,6 +33,7 @@ export async function generatePepTalk(input: PepTalkInput): Promise<string> {
     config: {
       systemInstruction: SYSTEM_PROMPT,
       maxOutputTokens: 600,
+      thinkingConfig: { thinkingBudget: 0 },
       httpOptions: { timeout: 15_000 },
     },
   });
