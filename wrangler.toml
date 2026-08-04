@@ -1,6 +1,6 @@
-name = "iracing-discord-bot"
+name = "box-box-bot"
 main = "src/worker.ts"
-compatibility_date = "2026-08-04"
+compatibility_date = "2026-05-03"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
