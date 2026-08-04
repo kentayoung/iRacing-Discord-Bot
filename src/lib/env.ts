@@ -19,5 +19,5 @@ function readRequiredEnv(): Record<(typeof REQUIRED)[number], string> {
 export const env = {
   ...readRequiredEnv(),
   DISCORD_GUILD_ID: process.env.DISCORD_GUILD_ID,
-  GEMINI_MODEL: process.env.GEMINI_MODEL ?? 'gemini-2.5-flash',
+  GEMINI_MODEL: process.env.GEMINI_MODEL ?? 'gemini-3.5-flash',
 };

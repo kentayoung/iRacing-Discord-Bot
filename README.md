@@ -36,7 +36,7 @@ Then run `/peptalk` in your dev server.
 | `DISCORD_CLIENT_ID` | yes | application ID |
 | `DISCORD_GUILD_ID` | no | dev-only; guild-scoped command registration when set, global when unset |
 | `GEMINI_API_KEY` | yes | free tier via [Google AI Studio](https://aistudio.google.com/apikey) |
-| `GEMINI_MODEL` | no | defaults to `gemini-2.5-flash` |
+| `GEMINI_MODEL` | no | defaults to `gemini-3.5-flash` |
 
 ## Deployment (Fly.io)
 
