@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-const REQUIRED = ['DISCORD_TOKEN', 'DISCORD_CLIENT_ID', 'ANTHROPIC_API_KEY'] as const;
+const REQUIRED = ['DISCORD_TOKEN', 'DISCORD_CLIENT_ID', 'GEMINI_API_KEY'] as const;
 
 function readRequiredEnv(): Record<(typeof REQUIRED)[number], string> {
   const missing = REQUIRED.filter((key) => !process.env[key]);
@@ -19,5 +19,5 @@ function readRequiredEnv(): Record<(typeof REQUIRED)[number], string> {
 export const env = {
   ...readRequiredEnv(),
   DISCORD_GUILD_ID: process.env.DISCORD_GUILD_ID,
-  ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL ?? 'claude-opus-5',
+  GEMINI_MODEL: process.env.GEMINI_MODEL ?? 'gemini-2.5-flash',
 };

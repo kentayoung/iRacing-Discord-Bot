@@ -2,7 +2,7 @@
 
 A Discord bot with one job: hype you up before your iRacing race. Run
 `/peptalk`, optionally tell it your track, series/car, mood, and any extra
-context, and Claude generates a short pep talk.
+context, and Gemini generates a short pep talk.
 
 This bot does **not** integrate with the iRacing API — iRacing currently has
 new OAuth client ID registration paused for third-party apps, so this is
@@ -21,7 +21,7 @@ intentionally a standalone, stateless command for now.
 
 ```bash
 npm install
-cp .env.example .env   # fill in DISCORD_TOKEN, DISCORD_CLIENT_ID, DISCORD_GUILD_ID, ANTHROPIC_API_KEY
+cp .env.example .env   # fill in DISCORD_TOKEN, DISCORD_CLIENT_ID, DISCORD_GUILD_ID, GEMINI_API_KEY
 npm run deploy-commands # registers /peptalk to your dev guild (near-instant)
 npm run dev             # starts the bot
 ```
@@ -35,14 +35,14 @@ Then run `/peptalk` in your dev server.
 | `DISCORD_TOKEN` | yes | bot token |
 | `DISCORD_CLIENT_ID` | yes | application ID |
 | `DISCORD_GUILD_ID` | no | dev-only; guild-scoped command registration when set, global when unset |
-| `ANTHROPIC_API_KEY` | yes | |
-| `ANTHROPIC_MODEL` | no | defaults to `claude-opus-5`; `claude-haiku-4-5-20251001` is a cheaper/faster alternative worth trying for this use case |
+| `GEMINI_API_KEY` | yes | free tier via [Google AI Studio](https://aistudio.google.com/apikey) |
+| `GEMINI_MODEL` | no | defaults to `gemini-2.5-flash` |
 
 ## Deployment (Fly.io)
 
 ```bash
 fly launch   # first time only, review fly.toml
-fly secrets set DISCORD_TOKEN=... DISCORD_CLIENT_ID=... ANTHROPIC_API_KEY=...
+fly secrets set DISCORD_TOKEN=... DISCORD_CLIENT_ID=... GEMINI_API_KEY=...
 fly deploy
 fly scale count 1
 ```
@@ -52,7 +52,7 @@ gateway connection and cannot tolerate being suspended.
 
 `.github/workflows/deploy.yml` deploys automatically on push to `main`. It
 needs these repo secrets: `FLY_API_TOKEN`, `DISCORD_TOKEN`, `DISCORD_CLIENT_ID`,
-`ANTHROPIC_API_KEY`. It also re-registers global slash commands on every
+`GEMINI_API_KEY`. It also re-registers global slash commands on every
 deploy (propagation can take up to ~1 hour, unlike guild-scoped dev commands).
 
 ## Adding Another Command

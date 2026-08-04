@@ -1,8 +1,8 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenAI } from '@google/genai';
 import { env } from './env.js';
 import { MOOD_LABELS, type PepTalkInput } from '../types.js';
 
-const anthropic = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 
 const SYSTEM_PROMPT = `You are a hype coach for sim racers on iRacing. You write short, high-energy
 pep talks that get drivers fired up right before they get in the car for a
@@ -27,21 +27,19 @@ function buildUserPrompt(input: PepTalkInput): string {
 }
 
 export async function generatePepTalk(input: PepTalkInput): Promise<string> {
-  const response = await anthropic.messages.create(
-    {
-      model: env.ANTHROPIC_MODEL,
-      max_tokens: 600,
-      thinking: { type: 'disabled' },
-      output_config: { effort: 'low' },
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: buildUserPrompt(input) }],
+  const response = await ai.models.generateContent({
+    model: env.GEMINI_MODEL,
+    contents: buildUserPrompt(input),
+    config: {
+      systemInstruction: SYSTEM_PROMPT,
+      maxOutputTokens: 600,
+      httpOptions: { timeout: 15_000 },
     },
-    { timeout: 15_000 },
-  );
+  });
 
-  const textBlock = response.content.find((block) => block.type === 'text');
-  if (!textBlock) {
-    throw new Error('Claude response contained no text content');
+  const text = response.text;
+  if (!text) {
+    throw new Error('Gemini response contained no text content');
   }
-  return textBlock.text;
+  return text;
 }

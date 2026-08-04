@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js';
-import { generatePepTalk } from '../lib/claude.js';
+import { generatePepTalk } from '../lib/gemini.js';
 import { MOOD_CHOICES, type Command, type Mood, type PepTalkInput } from '../types.js';
 
 function extractInput(interaction: ChatInputCommandInteraction): PepTalkInput {
