@@ -1,5 +1,3 @@
-import { MOOD_CHOICES } from '../types.js';
-
 const ApplicationCommandOptionType = {
   STRING: 3,
 } as const;
@@ -23,8 +21,8 @@ export const boxBoxCommand = {
     {
       type: ApplicationCommandOptionType.STRING,
       name: 'mood',
-      description: "How are you feeling before the race?",
-      choices: MOOD_CHOICES.map((choice) => ({ name: choice.name, value: choice.value })),
+      description: 'How are you feeling before the race? (e.g. nervous, confident, still salty about last week)',
+      max_length: 100,
     },
     {
       type: ApplicationCommandOptionType.STRING,

@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { MOOD_LABELS, type PepTalkInput } from '../types.js';
+import type { PepTalkInput } from '../types.js';
 
 const SYSTEM_PROMPT = `You are the driver's best friend hyping them up before their iRacing race —
 not a coach, not a crew chief, their actual boy giving them shit like the
@@ -18,7 +18,7 @@ function buildUserPrompt(input: PepTalkInput): string {
   const lines: string[] = [];
   if (input.track) lines.push(`Track: ${input.track}`);
   if (input.series) lines.push(`Series/car: ${input.series}`);
-  if (input.mood) lines.push(`How they're feeling: ${MOOD_LABELS[input.mood]}`);
+  if (input.mood) lines.push(`How they're feeling: ${input.mood}`);
   if (input.context) lines.push(`Extra context: ${input.context}`);
 
   if (lines.length === 0) {

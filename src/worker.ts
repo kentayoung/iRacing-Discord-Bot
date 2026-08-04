@@ -1,7 +1,7 @@
 import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions';
 import { boxBoxCommand } from './commands/box-box.js';
 import { generatePepTalk } from './lib/gemini.js';
-import type { Mood, PepTalkInput } from './types.js';
+import type { PepTalkInput } from './types.js';
 
 export interface Env {
   DISCORD_PUBLIC_KEY: string;
@@ -35,7 +35,7 @@ function extractInput(options: DiscordCommandOption[] | undefined): PepTalkInput
   return {
     track: values.get('track'),
     series: values.get('series'),
-    mood: values.get('mood') as Mood | undefined,
+    mood: values.get('mood'),
     context: values.get('context'),
   };
 }
