@@ -1,7 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import type { PepTalkInput } from '../types.js';
 
-const SYSTEM_PROMPT = `You are the driver's best friend hyping them up before their iRacing race —
+const PEP_TALK_SYSTEM_PROMPT = `You are the driver's best friend hyping them up before their iRacing race —
 not a coach, not a crew chief, their actual boy giving them shit like the
 group chat would. Clown on them a little — their nerves, their last result,
 their "strategy" — using the specific details they give you (their name,
@@ -25,7 +25,21 @@ about how they've historically done at today's track. If you connect a stat
 to today's race (e.g. "with a win rate like that..."), keep it as a general
 jab about their overall record, not a fabricated specific event.`;
 
-function buildUserPrompt(input: PepTalkInput): string {
+const TRACK_INSIGHTS_SYSTEM_PROMPT = `You are an experienced sim racing coach giving a driver quick, practical
+insights about a track before they race there in iRacing. If a car/series is
+given, tailor the advice to that car's characteristics (braking, grip level,
+etc). Give 3-5 concise, practical points: the track's key characteristics,
+the corners/sections that matter most, and common mistakes drivers make
+there. Short bullet-style lines are fine here — this should be scannable,
+not a story.
+
+Be specific about corner names and track characteristics you're confident
+about, but don't invent hyper-precise numbers (exact brake markers in
+meters, exact gears) you can't verify — keep guidance qualitative when
+you're not certain of exact figures. Direct and useful, no fluff, no
+generic filler like "stay consistent and you'll do great."`;
+
+function buildPepTalkPrompt(input: PepTalkInput): string {
   const lines: string[] = [];
   if (input.name) lines.push(`Their name: ${input.name}`);
   if (input.track) lines.push(`Track: ${input.track}`);
@@ -47,14 +61,14 @@ export interface GeminiConfig {
   model: string;
 }
 
-export async function generatePepTalk(input: PepTalkInput, config: GeminiConfig): Promise<string> {
+async function callGemini(userPrompt: string, systemPrompt: string, config: GeminiConfig): Promise<string> {
   const ai = new GoogleGenAI({ apiKey: config.apiKey });
 
   const response = await ai.models.generateContent({
     model: config.model,
-    contents: buildUserPrompt(input),
+    contents: userPrompt,
     config: {
-      systemInstruction: SYSTEM_PROMPT,
+      systemInstruction: systemPrompt,
       maxOutputTokens: 600,
       thinkingConfig: { thinkingBudget: 0 },
       httpOptions: { timeout: 15_000 },
@@ -66,4 +80,13 @@ export async function generatePepTalk(input: PepTalkInput, config: GeminiConfig)
     throw new Error('Gemini response contained no text content');
   }
   return text;
+}
+
+export async function generatePepTalk(input: PepTalkInput, config: GeminiConfig): Promise<string> {
+  return callGemini(buildPepTalkPrompt(input), PEP_TALK_SYSTEM_PROMPT, config);
+}
+
+export async function generateTrackInsights(track: string, car: string | undefined, config: GeminiConfig): Promise<string> {
+  const userPrompt = car ? `Track: ${track}\nCar/series: ${car}` : `Track: ${track}`;
+  return callGemini(userPrompt, TRACK_INSIGHTS_SYSTEM_PROMPT, config);
 }

@@ -1,6 +1,6 @@
 # iRacing Discord Bot
 
-A Discord bot with two commands:
+A Discord bot with three commands:
 
 - **`/box-box`** — talks shit and hypes you up before your iRacing race. Tell
   it your name, track, series/car, mood, and any extra context, and Gemini
@@ -9,8 +9,13 @@ A Discord bot with two commands:
   stats instead of staying generic.
 - **`/stats`** — looks up a driver's career stats (iRating, safety rating,
   starts/wins/win%, per category) by iRacing customer ID.
+- **`/track-insights`** — key practical insights for a track (and optionally
+  a car), plus links to search YouTube for setup guides and onboard laps.
+  Links are constructed search queries, not specific videos — AI models
+  reliably hallucinate broken/wrong video URLs, so this sidesteps that
+  entirely by always linking to a real search results page instead.
 
-Both commands are stateless — nothing is stored between invocations.
+All three commands are stateless — nothing is stored between invocations.
 
 ## A note on data sources
 
@@ -50,7 +55,7 @@ Two separate env files, because two different runtimes are involved:
 npm install
 cp .env.example .env           # fill in DISCORD_TOKEN, DISCORD_CLIENT_ID, DISCORD_GUILD_ID
 cp .dev.vars.example .dev.vars # fill in DISCORD_PUBLIC_KEY, GEMINI_API_KEY
-npm run deploy-commands        # registers /box-box and /stats to your dev guild (near-instant)
+npm run deploy-commands        # registers all commands to your dev guild (near-instant)
 npm run dev                    # starts a local Worker dev server (wrangler dev)
 ```
 

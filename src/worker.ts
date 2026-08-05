@@ -1,8 +1,10 @@
 import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions';
 import { boxBoxCommand } from './commands/box-box.js';
 import { statsCommand } from './commands/stats.js';
-import { generatePepTalk } from './lib/gemini.js';
+import { trackInsightsCommand } from './commands/track-insights.js';
+import { generatePepTalk, generateTrackInsights } from './lib/gemini.js';
 import { fetchCareerStats, formatCareerStatsSummary } from './lib/iracing-stats.js';
+import { buildTrackVideoLinks } from './lib/track-links.js';
 import type { PepTalkInput } from './types.js';
 
 export interface Env {
@@ -106,6 +108,32 @@ async function handleStats(interaction: DiscordInteraction): Promise<void> {
   }
 }
 
+async function handleTrackInsights(interaction: DiscordInteraction, env: Env): Promise<void> {
+  const values = new Map((interaction.data?.options ?? []).map((option) => [option.name, option.value]));
+  const track = values.get('track') as string | undefined;
+  const car = values.get('car') as string | undefined;
+
+  try {
+    if (!track) {
+      throw new Error('track missing');
+    }
+    const insights = await generateTrackInsights(track, car, {
+      apiKey: env.GEMINI_API_KEY,
+      model: env.GEMINI_MODEL,
+    });
+    const links = buildTrackVideoLinks(track, car);
+    const heading = car ? `${track} — ${car}` : track;
+    await editOriginalResponse(interaction.application_id, interaction.token, `**${heading}**\n${insights}\n\n${links}`);
+  } catch (err) {
+    console.error('track-insights failed:', err);
+    await editOriginalResponse(
+      interaction.application_id,
+      interaction.token,
+      "Couldn't pull track insights right now — try again in a bit! 🏁",
+    );
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     if (request.method !== 'POST') {
@@ -133,6 +161,10 @@ export default {
       }
       if (interaction.data?.name === statsCommand.name) {
         ctx.waitUntil(handleStats(interaction));
+        return jsonResponse({ type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE });
+      }
+      if (interaction.data?.name === trackInsightsCommand.name) {
+        ctx.waitUntil(handleTrackInsights(interaction, env));
         return jsonResponse({ type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE });
       }
     }
