@@ -39,11 +39,13 @@ Free plan covers this comfortably at zero cost.
 
 `/weekly` (Manage Server only) sets up automatic weekly posts:
 
-- `/weekly add series:<pick> car:<pick>` tracks a series. Both options are
-  autocomplete dropdowns of real iRacing series and that series' cars. `car`
-  is optional and sets what the track guide is titled after and what its
-  YouTube links search for. Add the same series again with another car to get
-  a guide per car.
+- `/weekly add series:<pick> guide:<bool> car:<pick>` tracks a series in the
+  this-week list. `series` and `car` are autocomplete dropdowns of real iRacing
+  series and that series' cars. Track guide posts are off by default; pass
+  `guide:True` to also get a weekly guide for that series. `car` (guide only)
+  sets what the guide is titled after and what its YouTube links search for.
+  Add the same series again with another car to get a guide per car. Guides
+  need a forum set with `/weekly channels` first.
 - `/weekly refresh` updates the posts right now. `force:True` also reposts guides already posted this week, such as one you deleted.
 - `/weekly remove`, `/weekly list` and `/weekly stop` manage what's tracked.
 - `/weekly channels this_week_channel:<channel> track_guides_channel:<forum>`
@@ -58,7 +60,7 @@ date range, then a line per series with the track and race length. It's
 edited in place during the week and a new message is posted when the week
 rolls over.
 
-**`track_guides_channel`** (a forum) gets one post per series each week, titled
+**`track_guides_channel`** (a forum) gets one post each week per series added with `guide:True`, titled
 `Track · Car` (or `Track · Series` when no car was picked and the series has several), with
 series, week, race length, car, Gemini track tips and YouTube search links.
 If `YOUTUBE_CHANNELS` (comma-separated `@handles`, set in `wrangler.toml`

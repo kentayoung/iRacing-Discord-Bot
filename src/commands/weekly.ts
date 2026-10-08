@@ -11,10 +11,11 @@ export const weeklyCommand = {
     {
       type: ApplicationCommandOptionType.SUB_COMMAND,
       name: 'add',
-      description: 'Track a series, and optionally the car its track guide should cover',
+      description: 'Track a series in the weekly list, optionally with a track guide post',
       options: [
         { type: ApplicationCommandOptionType.STRING, name: 'series', description: 'Series to track', required: true, autocomplete: true },
-        { type: ApplicationCommandOptionType.STRING, name: 'car', description: 'Car for the track guide and its YouTube links', autocomplete: true },
+        { type: ApplicationCommandOptionType.BOOLEAN, name: 'guide', description: 'Also post a weekly track guide for this series (off by default)' },
+        { type: ApplicationCommandOptionType.STRING, name: 'car', description: 'Car for the track guide and its YouTube links (needs guide:True)', autocomplete: true },
       ],
     },
     {

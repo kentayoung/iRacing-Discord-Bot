@@ -9,6 +9,7 @@ import {
   syncGuild,
   type GuildConfig,
   type SeriesInfo,
+  type TrackedSeries,
   type WeeklyEnv,
 } from './weekly.js';
 
@@ -33,9 +34,10 @@ function optionValue(options: DiscordCommandOption[] | undefined, name: string):
   return value === undefined ? undefined : String(value);
 }
 
-function describe(item: { series: string; car?: string }, catalog: SeriesInfo[] | null): string {
+function describe(item: TrackedSeries, catalog: SeriesInfo[] | null): string {
   const label = catalog?.find((series) => series.name === item.series)?.label ?? item.series;
-  return item.car ? `${label} · ${item.car}` : label;
+  const detail = [item.car, item.guide && 'guide'].filter(Boolean).join(', ');
+  return detail ? `${label} (${detail})` : label;
 }
 
 export async function autocompleteWeekly(interaction: DiscordInteraction, env: WeeklyEnv, ctx: ExecutionContext): Promise<Choice[]> {
@@ -156,6 +158,15 @@ export async function handleWeekly(interaction: DiscordInteraction, env: WeeklyE
     if (sub.name === 'add') {
       const name = optionValue(sub.options, 'series');
       const car = optionValue(sub.options, 'car');
+      const guide = sub.options?.find((option) => option.name === 'guide')?.value === true;
+      if (car && !guide) {
+        await reply('Picking a car is for track guides. Add `guide:True` as well, or leave the car out.');
+        return;
+      }
+      if (guide && !config.guidesChannelId) {
+        await reply('Set a forum for the guides first with `/weekly channels track_guides_channel:`.');
+        return;
+      }
       const all = await loadSchedule();
       await refreshCatalog(env, all);
 
@@ -170,11 +181,15 @@ export async function handleWeekly(interaction: DiscordInteraction, env: WeeklyE
         return;
       }
 
-      if (!config.tracked.some((item) => item.series === series.name && item.car === car)) {
-        config.tracked.push(car ? { series: series.name, car } : { series: series.name });
+      const added: TrackedSeries = { series: series.name, ...(guide && { guide }), ...(car && { car }) };
+      const alreadyTracked = config.tracked.some((item) => item.series === series.name && (guide ? item.guide && item.car === car : true));
+      if (!alreadyTracked) {
+        config.tracked = config.tracked.filter((item) => item.series !== series.name || item.guide);
+        config.tracked.push(added);
       }
       await saveGuildConfig(env, guildId, config);
-      await reply(`Tracking ${describe({ series: series.name, car }, await loadCatalog(env))}. ${await syncAndDescribe(env, guildId, config, all)}`);
+      const status = await syncAndDescribe(env, guildId, config, all);
+      await reply(`${alreadyTracked ? 'Already tracking' : 'Tracking'} ${describe(added, await loadCatalog(env))}. ${status}`);
       return;
     }
   } catch (err) {

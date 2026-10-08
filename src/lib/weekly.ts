@@ -11,6 +11,7 @@ const FORUM_REQUIRE_TAG = 1 << 4;
 
 export interface TrackedSeries {
   series: string;
+  guide?: boolean;
   car?: string;
 }
 
@@ -160,7 +161,8 @@ async function postGuides(env: WeeklyEnv, config: GuildConfig, schedule: WeeklyS
   const forum = await discordRequest<ForumChannel>(env.DISCORD_TOKEN, `/channels/${config.guidesChannelId}`);
   const posted: Record<string, number> = {};
 
-  for (const { series, car: picked } of config.tracked) {
+  for (const { series, guide, car: picked } of config.tracked) {
+    if (!guide) continue;
     const entry = schedule.entries.find((candidate) => candidate.name === series);
     if (!entry) continue;
     const car = guideCar(entry, picked);
