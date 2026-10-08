@@ -2,30 +2,20 @@ import { InteractionResponseType, InteractionType, verifyKey } from 'discord-int
 import { boxBoxCommand } from './commands/box-box.js';
 import { statsCommand } from './commands/stats.js';
 import { trackInsightsCommand } from './commands/track-insights.js';
+import { weeklyCommand } from './commands/weekly.js';
 import { generatePepTalk, generateTrackInsights } from './lib/gemini.js';
 import { fetchCareerStats, formatCareerStatsSummary } from './lib/iracing-stats.js';
 import { buildTrackVideoLinks } from './lib/track-links.js';
-import type { PepTalkInput } from './types.js';
+import { syncAllGuilds } from './lib/weekly.js';
+import { autocompleteWeekly, handleWeekly } from './lib/weekly-command.js';
+import type { DiscordCommandOption, DiscordInteraction, PepTalkInput } from './types.js';
 
 export interface Env {
   DISCORD_PUBLIC_KEY: string;
   GEMINI_API_KEY: string;
   GEMINI_MODEL: string;
-}
-
-interface DiscordCommandOption {
-  name: string;
-  value: string | number;
-}
-
-interface DiscordInteraction {
-  type: number;
-  application_id: string;
-  token: string;
-  data?: {
-    name: string;
-    options?: DiscordCommandOption[];
-  };
+  DISCORD_TOKEN: string;
+  CONFIG: KVNamespace;
 }
 
 function jsonResponse(body: unknown): Response {
@@ -167,8 +157,25 @@ export default {
         ctx.waitUntil(handleTrackInsights(interaction, env));
         return jsonResponse({ type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE });
       }
+      if (interaction.data?.name === weeklyCommand.name) {
+        ctx.waitUntil(handleWeekly(interaction, env, (content) => editOriginalResponse(interaction.application_id, interaction.token, content)));
+        return jsonResponse({ type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, data: { flags: 64 } });
+      }
+    }
+
+    if (interaction.type === InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE && interaction.data?.name === weeklyCommand.name) {
+      const choices = await autocompleteWeekly(interaction, env, ctx);
+      return jsonResponse({ type: InteractionResponseType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT, data: { choices } });
     }
 
     return new Response('Unknown interaction', { status: 400 });
+  },
+
+  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(
+      syncAllGuilds(env).catch((err) => {
+        console.error('weekly sync failed:', err);
+      }),
+    );
   },
 };

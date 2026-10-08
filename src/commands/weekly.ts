@@ -1,0 +1,56 @@
+import { ApplicationCommandOptionType, ChannelType } from '../types.js';
+
+const MANAGE_GUILD = String(1 << 5);
+
+export const weeklyCommand = {
+  name: 'weekly',
+  description: "Weekly iRacing track list and track guides for your series",
+  default_member_permissions: MANAGE_GUILD,
+  dm_permission: false,
+  options: [
+    {
+      type: ApplicationCommandOptionType.SUB_COMMAND,
+      name: 'add',
+      description: 'Track a series, and optionally the car its track guide should cover',
+      options: [
+        { type: ApplicationCommandOptionType.STRING, name: 'series', description: 'Series to track', required: true, autocomplete: true },
+        { type: ApplicationCommandOptionType.STRING, name: 'car', description: 'Car for the track guide and its YouTube links', autocomplete: true },
+      ],
+    },
+    {
+      type: ApplicationCommandOptionType.SUB_COMMAND,
+      name: 'remove',
+      description: 'Stop tracking a series',
+      options: [{ type: ApplicationCommandOptionType.STRING, name: 'series', description: 'Tracked series to remove', required: true, autocomplete: true }],
+    },
+    {
+      type: ApplicationCommandOptionType.SUB_COMMAND,
+      name: 'channels',
+      description: 'Choose where the weekly posts go',
+      options: [
+        {
+          type: ApplicationCommandOptionType.CHANNEL,
+          name: 'this_week_channel',
+          description: 'Text channel for the weekly track list',
+          channel_types: [ChannelType.GUILD_TEXT, ChannelType.GUILD_ANNOUNCEMENT],
+        },
+        {
+          type: ApplicationCommandOptionType.CHANNEL,
+          name: 'track_guides_channel',
+          description: 'Forum channel for a track guide post per series each week',
+          channel_types: [ChannelType.GUILD_FORUM],
+        },
+      ],
+    },
+    {
+      type: ApplicationCommandOptionType.SUB_COMMAND,
+      name: 'list',
+      description: 'Show what is being tracked',
+    },
+    {
+      type: ApplicationCommandOptionType.SUB_COMMAND,
+      name: 'stop',
+      description: 'Stop all weekly posts for this server',
+    },
+  ],
+};

@@ -23,9 +23,11 @@ jobs:
           secrets: |
             DISCORD_PUBLIC_KEY
             GEMINI_API_KEY
+            DISCORD_TOKEN
         env:
           DISCORD_PUBLIC_KEY: ${{ secrets.DISCORD_PUBLIC_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
 
       - run: npm run deploy-commands
         env:

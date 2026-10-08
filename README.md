@@ -35,11 +35,59 @@ gateway connection needed), which verifies the request, kicks off the Gemini
 call, and edits its reply in once the pep talk is ready. Cloudflare's Workers
 Free plan covers this comfortably at zero cost.
 
+## Weekly posts
+
+`/weekly` (Manage Server only) sets up automatic weekly posts:
+
+- `/weekly add series:<pick> car:<pick>` tracks a series. Both options are
+  autocomplete dropdowns of real iRacing series and that series' cars. `car`
+  is optional and sets what the track guide is titled after and what its
+  YouTube links search for. Add the same series again with another car to get
+  a guide per car.
+- `/weekly remove`, `/weekly list` and `/weekly stop` manage what's tracked.
+- `/weekly channels this_week_channel:<channel> track_guides_channel:<forum>`
+  sets where posts go. Either one is optional on its own.
+
+The dropdowns read a cached series list in KV, refreshed by the weekly cron
+and by `/weekly add`. The very first autocomplete after deploy may come back
+empty while it fills the cache.
+
+**`this_week_channel`** gets one message per week: season, week number and
+date range, then a line per series with the track and race length. It's
+edited in place during the week and a new message is posted when the week
+rolls over.
+
+**`track_guides_channel`** (a forum) gets one post per series each week, titled
+`Track · Car` (or `Track · Series` when no car was picked and the series has several), with
+series, week, race length, car, Gemini track tips and YouTube search links.
+Tags whose name appears in the series or car name are applied. If the forum
+requires a tag and none match, the first tag is used. Posts for the same track
+and car are only made once per week.
+
+A Cron Trigger runs Tuesday and Wednesday at 00:05 UTC: iRacing's week rolls
+over Tuesday 00:00 UTC, and Wednesday is a retry in case the new season's PDF
+isn't published yet. Runs are idempotent. Per-server settings live in a
+Workers KV namespace bound as `CONFIG` (wrangler creates it on first deploy).
+The bot needs **View Channel**, **Send Messages**, **Embed Links** in the
+this-week channel and **View Channel**, **Send Messages**,
+**Send Messages in Threads** and **Create Posts** in the forum.
+
+Data comes straight from iRacing's public
+[season schedule PDF](https://members-assets.iracing.com/public/schedulepdf/SeasonSchedule.pdf),
+parsed in the Worker with `unpdf` (no iRacing login needed). The PDF has no
+machine-readable format, so parsing depends on its current layout. If
+iRacing redesigns it, posts could come out empty or wrong until
+`parseSchedule` in `src/lib/schedule.ts` is adjusted. Heat-based dirt
+series don't list a race length in the PDF, so that part is left out.
+
+Test the cron locally with `npx wrangler dev --test-scheduled` and hit
+`/__scheduled`.
+
 ## 1. Discord Developer Portal Setup
 
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications) and create a **New Application**.
 2. **General Information** tab → copy the **Application ID** → this is `DISCORD_CLIENT_ID` — and copy the **Public Key** → this is `DISCORD_PUBLIC_KEY`.
-3. **Bot** tab → Reset Token → copy it → this is `DISCORD_TOKEN` (only needed for registering commands, not by the Worker at runtime). Leave all privileged intents off.
+3. **Bot** tab → Reset Token → copy it → this is `DISCORD_TOKEN` (used to register commands, and as a Worker secret for the weekly posts). Leave all privileged intents off.
 4. **OAuth2 → URL Generator** → check the `bot` and `applications.commands` scopes (no bot permissions are required) → open the generated URL to invite the bot to your server.
 5. In Discord, enable Developer Mode (User Settings → Advanced), then right-click your server and **Copy Server ID** → this is `DISCORD_GUILD_ID` (used only for fast dev command registration).
 6. Leave **Interactions Endpoint URL** blank for now — you'll set it after the first deploy (Discord verifies it's live before saving it).
@@ -80,6 +128,7 @@ either if you've also upgraded Node.
 | `DISCORD_CLIENT_ID` | `deploy-commands` (Node) | application ID |
 | `DISCORD_GUILD_ID` | `deploy-commands` (Node) | optional, dev-only; guild-scoped registration when set, global when unset |
 | `DISCORD_PUBLIC_KEY` | Worker | verifies incoming interaction requests are really from Discord |
+| `DISCORD_TOKEN` | Worker | same bot token, used to post the weekly schedule and guides |
 | `GEMINI_API_KEY` | Worker | free tier via [Google AI Studio](https://aistudio.google.com/apikey) |
 | `GEMINI_MODEL` | Worker | set in `wrangler.toml` `[vars]`, defaults to `gemini-3.1-flash-lite` — a lite model was chosen deliberately for its much higher free-tier request quota than newer flagship Flash models. Google has repeatedly retired free-tier model IDs out from under existing code (this is the third default we've had to change) — if pep talks start 404ing, check [Google AI Studio](https://aistudio.google.com/) for a current model ID |
 
