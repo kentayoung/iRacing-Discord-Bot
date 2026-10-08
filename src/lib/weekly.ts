@@ -34,6 +34,7 @@ export interface WeeklyEnv {
   DISCORD_TOKEN: string;
   GEMINI_API_KEY: string;
   GEMINI_MODEL: string;
+  YOUTUBE_CHANNELS?: string;
 }
 
 interface ForumChannel {
@@ -133,8 +134,15 @@ async function postGuide(env: WeeklyEnv, forum: ForumChannel, channelId: string,
   ]
     .filter(Boolean)
     .join(' · ');
-  const links = buildTrackVideoLinks(entry.track, subject);
-  const content = [details, insights, links].filter(Boolean).join('\n\n').slice(0, MAX_MESSAGE_LENGTH);
+
+  const channels = (env.YOUTUBE_CHANNELS ?? '')
+    .split(',')
+    .map((handle) => handle.trim())
+    .filter(Boolean);
+  const links = buildTrackVideoLinks(entry.track, subject, channels);
+  const fixed = [details, links].filter(Boolean).join('\n\n');
+  const room = MAX_MESSAGE_LENGTH - fixed.length - 2;
+  const content = insights && room > 100 ? [details, insights.slice(0, room), links].filter(Boolean).join('\n\n') : fixed;
 
   await discordRequest(env.DISCORD_TOKEN, `/channels/${channelId}/threads`, {
     method: 'POST',

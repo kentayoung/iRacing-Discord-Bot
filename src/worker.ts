@@ -16,6 +16,7 @@ export interface Env {
   GEMINI_MODEL: string;
   DISCORD_TOKEN: string;
   CONFIG: KVNamespace;
+  YOUTUBE_CHANNELS?: string;
 }
 
 function jsonResponse(body: unknown): Response {

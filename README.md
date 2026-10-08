@@ -61,6 +61,10 @@ rolls over.
 **`track_guides_channel`** (a forum) gets one post per series each week, titled
 `Track · Car` (or `Track · Series` when no car was picked and the series has several), with
 series, week, race length, car, Gemini track tips and YouTube search links.
+If `YOUTUBE_CHANNELS` (comma-separated `@handles`, set in `wrangler.toml`
+`[vars]`) is set, each guide also links to a search of each of those channels
+for the track and car. These are search pages, not specific videos, so there's
+no YouTube API key or quota involved. The generic YouTube search links stay.
 Tags whose name appears in the series or car name are applied. If the forum
 requires a tag and none match, the first tag is used. Posts for the same track
 and car are only made once per week.
@@ -130,6 +134,7 @@ either if you've also upgraded Node.
 | `DISCORD_GUILD_ID` | `deploy-commands` (Node) | optional, dev-only; guild-scoped registration when set, global when unset |
 | `DISCORD_PUBLIC_KEY` | Worker | verifies incoming interaction requests are really from Discord |
 | `DISCORD_TOKEN` | Worker | same bot token, used to post the weekly schedule and guides |
+| `YOUTUBE_CHANNELS` | Worker (optional) | comma-separated channel handles (e.g. `@name1, @name2`), set in `wrangler.toml` `[vars]` |
 | `GEMINI_API_KEY` | Worker | free tier via [Google AI Studio](https://aistudio.google.com/apikey) |
 | `GEMINI_MODEL` | Worker | set in `wrangler.toml` `[vars]`, defaults to `gemini-3.1-flash-lite` — a lite model was chosen deliberately for its much higher free-tier request quota than newer flagship Flash models. Google has repeatedly retired free-tier model IDs out from under existing code (this is the third default we've had to change) — if pep talks start 404ing, check [Google AI Studio](https://aistudio.google.com/) for a current model ID |
 
