@@ -44,6 +44,7 @@ Free plan covers this comfortably at zero cost.
   is optional and sets what the track guide is titled after and what its
   YouTube links search for. Add the same series again with another car to get
   a guide per car.
+- `/weekly refresh` updates the posts right now. `force:True` also reposts guides already posted this week, such as one you deleted.
 - `/weekly remove`, `/weekly list` and `/weekly stop` manage what's tracked.
 - `/weekly channels this_week_channel:<channel> track_guides_channel:<forum>`
   sets where posts go. Either one is optional on its own.

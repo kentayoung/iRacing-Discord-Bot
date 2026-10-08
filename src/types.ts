@@ -2,6 +2,7 @@ export const ApplicationCommandOptionType = {
   SUB_COMMAND: 1,
   STRING: 3,
   INTEGER: 4,
+  BOOLEAN: 5,
   CHANNEL: 7,
 } as const;
 
@@ -22,7 +23,7 @@ export const ChannelType = {
 
 export interface DiscordCommandOption {
   name: string;
-  value?: string | number;
+  value?: string | number | boolean;
   focused?: boolean;
   options?: DiscordCommandOption[];
 }

@@ -103,6 +103,16 @@ export async function handleWeekly(interaction: DiscordInteraction, env: WeeklyE
       return;
     }
 
+    if (sub.name === 'refresh') {
+      if (config.tracked.length === 0) {
+        await reply('Nothing is tracked yet. Add a series with `/weekly add`.');
+        return;
+      }
+      if (sub.options?.find((option) => option.name === 'force')?.value === true) config.posted = {};
+      await reply(await syncAndDescribe(env, guildId, config, await loadSchedule()));
+      return;
+    }
+
     if (sub.name === 'list') {
       const catalog = await loadCatalog(env);
       const channels = [config.thisWeekChannelId && `<#${config.thisWeekChannelId}>`, config.guidesChannelId && `<#${config.guidesChannelId}>`].filter(Boolean);

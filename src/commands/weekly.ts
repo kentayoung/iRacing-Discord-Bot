@@ -44,6 +44,18 @@ export const weeklyCommand = {
     },
     {
       type: ApplicationCommandOptionType.SUB_COMMAND,
+      name: 'refresh',
+      description: 'Update the weekly posts now',
+      options: [
+        {
+          type: ApplicationCommandOptionType.BOOLEAN,
+          name: 'force',
+          description: 'Also repost track guides already posted this week (e.g. one you deleted)',
+        },
+      ],
+    },
+    {
+      type: ApplicationCommandOptionType.SUB_COMMAND,
       name: 'list',
       description: 'Show what is being tracked',
     },
